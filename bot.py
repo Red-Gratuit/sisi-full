@@ -195,7 +195,11 @@ def webhook():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8000"))
-    webhook_url = os.environ.get("WEBHOOK_URL") or os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+    webhook_url = (
+        os.environ.get("WEBHOOK_URL")
+        or os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+        or os.environ.get("MINI_APP_URL")
+    )
     if webhook_url and not webhook_url.startswith("http"):
         webhook_url = "https://" + webhook_url
     if webhook_url:
