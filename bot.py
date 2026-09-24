@@ -104,6 +104,17 @@ def set_webhook(webhook_url):
     if not BOT_TOKEN:
         print("BOT_TOKEN non défini, webhook non configuré.")
         return False
+    try:
+        response = requests.post(f"{TELEGRAM_API_URL}/setWebhook", json={"url": webhook_url}, timeout=15)
+        result = response.json()
+        if result.get("ok"):
+            print(f"✅ Webhook configuré: {webhook_url}")
+            return True
+        print(f"❌ Erreur webhook: {result}")
+        return False
+    except Exception as exc:
+        print(f"Erreur configuration webhook: {exc}")
+        return False
 
 
 def configure_webhook():
@@ -118,17 +129,6 @@ def configure_webhook():
         return set_webhook(f"{webhook_url.rstrip('/')}/webhook")
     print("Aucune URL publique définie, webhook non configuré.")
     return False
-    try:
-        response = requests.post(f"{TELEGRAM_API_URL}/setWebhook", json={"url": webhook_url}, timeout=15)
-        result = response.json()
-        if result.get("ok"):
-            print(f"✅ Webhook configuré: {webhook_url}")
-            return True
-        print(f"❌ Erreur webhook: {result}")
-        return False
-    except Exception as exc:
-        print(f"Erreur configuration webhook: {exc}")
-        return False
 
 
 @app.get("/health")
