@@ -88,12 +88,13 @@ NOUS TE LAISSONS NAVIGUER SUR NOTRE MINI-APP 📱
 def handle_message(update):
     message = update.get("message", {})
     chat_id = message.get("chat", {}).get("id")
-    text = message.get("text", "")
+    text = message.get("text", "").strip()
 
     if not chat_id or not text:
         return
 
-    if text == "/start":
+    command = text.split(maxsplit=1)[0].split("@", maxsplit=1)[0]
+    if command == "/start":
         handle_start(chat_id)
     else:
         send_message(chat_id, "Utilisez /start pour accéder à la mini-app Cofee622 🌿")
@@ -103,6 +104,20 @@ def set_webhook(webhook_url):
     if not BOT_TOKEN:
         print("BOT_TOKEN non défini, webhook non configuré.")
         return False
+
+
+def configure_webhook():
+    webhook_url = (
+        os.environ.get("WEBHOOK_URL")
+        or os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+        or os.environ.get("MINI_APP_URL")
+    )
+    if webhook_url and not webhook_url.startswith("http"):
+        webhook_url = "https://" + webhook_url
+    if webhook_url:
+        return set_webhook(f"{webhook_url.rstrip('/')}/webhook")
+    print("Aucune URL publique définie, webhook non configuré.")
+    return False
     try:
         response = requests.post(f"{TELEGRAM_API_URL}/setWebhook", json={"url": webhook_url}, timeout=15)
         result = response.json()
@@ -193,15 +208,9 @@ def webhook():
     return jsonify({"ok": True})
 
 
+configure_webhook()
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8000"))
-    webhook_url = (
-        os.environ.get("WEBHOOK_URL")
-        or os.environ.get("RAILWAY_PUBLIC_DOMAIN")
-        or os.environ.get("MINI_APP_URL")
-    )
-    if webhook_url and not webhook_url.startswith("http"):
-        webhook_url = "https://" + webhook_url
-    if webhook_url:
-        set_webhook(f"{webhook_url.rstrip('/')}/webhook")
     app.run(host="0.0.0.0", port=port, debug=False)
