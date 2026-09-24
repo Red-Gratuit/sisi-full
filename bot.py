@@ -11,8 +11,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}" if BOT_TOKEN else ""
-CANAL_URL = "https://t.me/+AoIVMLnchiODFk"
-CONTACT_URL = "https://snapchat.com/add/Uzi5959"
+CONTACT_URL = "https://snapchat.com/add/sisi622599"
 PRODUCTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "products.json")
 products_lock = Lock()
 
@@ -20,7 +19,7 @@ products_lock = Lock()
 def build_mini_app_url():
     mini_app_url = os.environ.get("MINI_APP_URL") or os.environ.get("RAILWAY_PUBLIC_DOMAIN") or ""
     if not mini_app_url:
-        return "https://web-producon-fa8677.up.railway.app"
+        return "https://web-producon-fa86"
     if not mini_app_url.startswith("http://") and not mini_app_url.startswith("https://"):
         return "https://" + mini_app_url
     return mini_app_url.rstrip("/")
@@ -68,7 +67,7 @@ def send_photo(chat_id, caption, reply_markup=None):
 
 
 def handle_start(chat_id):
-    caption = """🌟 BIENVENUE CHEZ Uzi5959 🌟
+    caption = """🌟 BIENVENUE CHEZ Cofee622
 NOUS TE LAISSONS NAVIGUER SUR NOTRE MINI-APP 📱
 🔥 Produits Premium - 59-62 🔥"""
 
@@ -82,7 +81,7 @@ NOUS TE LAISSONS NAVIGUER SUR NOTRE MINI-APP 📱
 
     result = send_photo(chat_id, caption, json.dumps(reply_markup))
     if not result or not result.get("ok"):
-        send_message(chat_id, f"🌟 **BIENVENUE CHEZ Uzi5959** 🌟\n\n{caption}", json.dumps(reply_markup))
+        send_message(chat_id, f"🌟 **BIENVENUE CHEZ Cofee622** 🌟\n\n{caption}", json.dumps(reply_markup))
 
 
 def handle_message(update):
