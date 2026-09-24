@@ -47,7 +47,7 @@ def send_message(chat_id, text, reply_markup=None):
 def send_photo(chat_id, caption, reply_markup=None):
     if not BOT_TOKEN:
         return None
-    data = {"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"}
+    data = {"chat_id": chat_id, "caption": caption}
     if reply_markup:
         data["reply_markup"] = reply_markup
 
@@ -80,9 +80,11 @@ NOUS TE LAISSONS NAVIGUER SUR NOTRE MINI-APP 📱
         ]
     }
 
-    result = send_message(chat_id, text, json.dumps(reply_markup))
+    result = send_photo(chat_id, text, json.dumps(reply_markup))
     if not result or not result.get("ok"):
-        print(f"Échec envoi /start: {result}")
+        fallback = send_message(chat_id, text, json.dumps(reply_markup))
+        if not fallback or not fallback.get("ok"):
+            print(f"Échec envoi /start: photo={result}, texte={fallback}")
 
 
 def handle_message(update):
