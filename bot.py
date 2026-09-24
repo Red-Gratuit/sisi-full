@@ -33,7 +33,7 @@ app = Flask(__name__, static_url_path="", static_folder=".")
 def send_message(chat_id, text, reply_markup=None):
     if not BOT_TOKEN:
         return None
-    data = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
+    data = {"chat_id": chat_id, "text": text}
     if reply_markup:
         data["reply_markup"] = reply_markup
     try:
@@ -68,7 +68,7 @@ def send_photo(chat_id, caption, reply_markup=None):
 
 
 def handle_start(chat_id):
-    caption = """🌟 BIENVENUE CHEZ Cofee622
+    text = """🌟 BIENVENUE CHEZ Cofee622
 NOUS TE LAISSONS NAVIGUER SUR NOTRE MINI-APP 📱
 🔥 Produits Premium - 59-62 🔥"""
 
@@ -80,9 +80,9 @@ NOUS TE LAISSONS NAVIGUER SUR NOTRE MINI-APP 📱
         ]
     }
 
-    result = send_photo(chat_id, caption, json.dumps(reply_markup))
+    result = send_message(chat_id, text, json.dumps(reply_markup))
     if not result or not result.get("ok"):
-        send_message(chat_id, f"🌟 **BIENVENUE CHEZ Cofee622** 🌟\n\n{caption}", json.dumps(reply_markup))
+        print(f"Échec envoi /start: {result}")
 
 
 def handle_message(update):
