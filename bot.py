@@ -11,6 +11,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}" if BOT_TOKEN else ""
+CANAL_URL = "https://t.me/+AoIVMLnchiODFk"
 CONTACT_URL = "https://snapchat.com/add/sisi622599"
 PRODUCTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "products.json")
 products_lock = Lock()
@@ -95,7 +96,7 @@ def handle_message(update):
     if text == "/start":
         handle_start(chat_id)
     else:
-        send_message(chat_id, "Utilisez /start pour accéder à la mini-app Uzi5959 🌿")
+        send_message(chat_id, "Utilisez /start pour accéder à la mini-app Cofee622 🌿")
 
 
 def set_webhook(webhook_url):
