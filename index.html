@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+<title>Cofee622 - Mini App</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+</head>
+<body>
+
+  <!-- ===================== SPLASH / INTRO LOGO ===================== -->
+  <div id="splash">
+    <img src="assets/logo.png" alt="Logo" id="splash-logo" />
+  </div>
+
+  <!-- ===================== OVERLAY "TAP TO START" (1er clic = musique) ===================== -->
+  <div id="tap-overlay">
+    <div id="tap-content">
+      <img src="assets/logo.png" alt="Logo" id="tap-logo" />
+      <p>Touchez l'écran pour entrer</p>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL DETAILS PRODUIT ===================== -->
+  <div id="product-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-sheet">
+      <button class="modal-close" type="button" id="close-product-modal">×</button>
+      <div id="product-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL CODE ADMIN ===================== -->
+  <div id="admin-code-modal" class="modal hidden" aria-hidden="true">
+    <div class="code-panel">
+      <div class="code-badge" aria-hidden="true">🔐</div>
+      <h3>Code d'accès</h3>
+      <p>Entrez le code administrateur pour accéder au panneau.</p>
+      <label class="code-field" for="admin-code-input">
+        <span>Code</span>
+        <input id="admin-code-input" type="password" placeholder="Saisissez le code" maxlength="20" />
+      </label>
+      <div class="code-actions">
+        <button type="button" id="validate-admin-code" class="btn-primary">Valider</button>
+        <button type="button" id="close-admin-code-btn" class="btn-secondary">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PANNEL ADMIN ===================== -->
+  <div id="admin-modal" class="modal hidden" aria-hidden="true">
+    <div class="admin-panel">
+      <div class="admin-header">
+        <h3>Panneau Admin</h3>
+        <button type="button" id="close-admin-btn" class="modal-close">×</button>
+      </div>
+
+      <form id="admin-product-form" class="admin-form">
+        <input type="hidden" id="product-id" />
+
+        <label>
+          <span>Nom du produit</span>
+          <input id="product-name" type="text" maxlength="40" placeholder="Ex. Maillot officiel" required />
+        </label>
+
+        <div class="admin-two-col">
+          <label>
+            <span>Prix</span>
+            <input id="product-price" type="number" min="0" step="0.01" placeholder="39.90" required />
+          </label>
+
+          <label>
+            <span>Quantité</span>
+            <input id="product-quantity" type="number" min="0" step="1" placeholder="12" required />
+          </label>
+        </div>
+
+        <label>
+          <span>Catégorie</span>
+          <select id="product-category" required>
+            <option value="hash">Hash</option>
+            <option value="weed">Weed</option>
+            <option value="dur">Dur</option>
+            <option value="autres">Autres</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Description</span>
+          <textarea id="product-description" rows="3" maxlength="220" placeholder="Ex. Design premium, très confortable et facile à transporter."></textarea>
+        </label>
+
+        <div class="price-tier-section">
+          <div class="price-tier-header">
+            <span>Prix selon quantité</span>
+            <button type="button" id="add-price-tier" class="btn-tertiary">+ Ajouter</button>
+          </div>
+          <div id="price-tiers" class="price-tiers"></div>
+        </div>
+
+        <label>
+          <span>Photo ou vidéo</span>
+          <input id="product-media" type="file" accept="image/*,video/*" />
+        </label>
+
+        <div id="media-preview" class="media-preview"></div>
+
+        <div class="admin-actions-row">
+          <button type="submit" class="btn-primary">Enregistrer</button>
+          <button type="button" id="reset-product-form" class="btn-secondary">Réinitialiser</button>
+        </div>
+      </form>
+
+      <div class="admin-list-wrap">
+        <h4>Produits</h4>
+        <div id="admin-product-list" class="admin-product-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== APP PRINCIPALE ===================== -->
+  <div id="app" class="hidden">
+
+    <!-- Barre top -->
+    <header class="topbar">
+      <img src="assets/logo.png" class="topbar-logo" alt="logo" id="topbar-logo" />
+      <h1>Cofee622</h1>
+      <button id="mute-btn" title="Son">🔊</button>
+    </header>
+
+    <!-- ================= PAGE : ACCUEIL ================= -->
+    <section id="page-accueil" class="page active">
+      <div class="page-brand">
+        <img src="assets/logo.png" alt="logo" class="page-brand-logo" />
+        <div class="page-brand-copy">
+          <span class="page-brand-kicker">Boutique officielle</span>
+          <strong>Cofee622</strong>
+        </div>
+      </div>
+
+      <div class="hero">
+        <img src="assets/logo.png" alt="logo" class="hero-logo" />
+        <h2>Bienvenue sur notre boutique</h2>
+        <p>Découvrez nos produits exclusifs, sélectionnés pour vous.</p>
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" data-cat="tous">Tous</button>
+        <button class="filter-btn" data-cat="hash">Hash</button>
+        <button class="filter-btn" data-cat="weed">Weed</button>
+        <button class="filter-btn" data-cat="dur">Dur</button>
+        <button class="filter-btn" data-cat="autres">Autres</button>
+      </div>
+
+      <div id="produits-grid" class="grid"></div>
+    </section>
+
+    <!-- ================= PAGE : AVIS ================= -->
+    <section id="page-avis" class="page">
+      <div class="page-brand">
+        <img src="assets/logo.png" alt="logo" class="page-brand-logo" />
+        <div class="page-brand-copy">
+          <span class="page-brand-kicker">Avis clients</span>
+          <strong>Cofee622</strong>
+        </div>
+      </div>
+
+      <h2>Avis clients</h2>
+
+      <form id="avis-form" class="avis-form">
+        <label>
+          <span>Votre nom</span>
+          <input type="text" id="avis-name" name="avis-name" maxlength="30" placeholder="Ex. Claire L." required />
+        </label>
+
+        <label>
+          <span>Note</span>
+          <select id="avis-stars" name="avis-stars" aria-label="Note">
+            <option value="5">5 étoiles</option>
+            <option value="4">4 étoiles</option>
+            <option value="3">3 étoiles</option>
+            <option value="2">2 étoiles</option>
+            <option value="1">1 étoile</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Votre avis</span>
+          <textarea id="avis-text" name="avis-text" rows="4" maxlength="180" placeholder="Décrivez votre expérience..." required></textarea>
+        </label>
+
+        <button type="submit" class="btn-primary">Ajouter un avis</button>
+      </form>
+
+      <div class="avis-list" id="avis-list"></div>
+    </section>
+
+    <!-- ================= PAGE : INFO ================= -->
+    <section id="page-info" class="page">
+      <div class="page-brand">
+        <img src="assets/logo.png" alt="logo" class="page-brand-logo" />
+        <div class="page-brand-copy">
+          <span class="page-brand-kicker">Informations</span>
+          <strong>Cofee622</strong>
+        </div>
+      </div>
+
+      <h2>Informations</h2>
+
+      <div class="info-card">
+        <h3>Tout Type De Produits</h3>
+        <p>Je propose des <strong>Produits</strong> de qualité premium, avec de <strong>nombreuse Variétés</strong> ! 💨</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Prix</h3>
+        <p>Voir Les Cartes Produits</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Localisation</h3>
+        <p>59-62</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Livraison</h3>
+        <p>Possible autour de la zone</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Sur place</h3>
+        <p>Également disponible Sur Tourcoing</p>
+      </div>
+
+      <div class="info-card clickable-card">
+        <h3>Comment me contacter ?</h3>
+        <p>Pour commander ou avoir des infos sur les Produits disponibles</p>
+        <p><a href="https://www.snapchat.com/add/Cofee622" target="_blank" rel="noreferrer">📸 SnapchatCofee622</a></p>
+        <p>⚡Réponse rapide<br>🔒Sérieux<br>🤫Discret</p>
+        <p>👉 N'hésite pas à ajouter et venir en DM !</p>
+        <p>Je réponds rapidement à toutes les questions 💬</p>
+      </div>
+    </section>
+
+    <!-- ================= PAGE : CONTACT ================= -->
+    <section id="page-contact" class="page">
+      <div class="page-brand">
+        <img src="assets/logo.png" alt="logo" class="page-brand-logo" />
+        <div class="page-brand-copy">
+          <span class="page-brand-kicker">Contact</span>
+          <strong>Cofee622</strong>
+        </div>
+      </div>
+
+      <h2>Contact</h2>
+
+      <div class="contact-grid">
+        <a class="contact-tile telegram" href="https://t.me/ElDoctor59" target="_blank" rel="noreferrer">
+          <span class="contact-icon">✈️</span>
+          <span class="contact-label">Telegram</span>
+          <small>@Cofee622</small>
+        </a>
+
+        <a class="contact-tile snap" href="https://www.snapchat.com/add/Cofee622" target="_blank" rel="noreferrer">
+          <span class="contact-icon">📸</span>
+          <span class="contact-label">Snap</span>
+          <small>Cofee622</small>
+        </a>
+
+        <a class="contact-tile emergency" href="https://www.snapchat.com/add/Cofee6229" target="_blank" rel="noreferrer">
+          <span class="contact-icon">🆘</span>
+          <span class="contact-label">Snap secours</span>
+          <small>Urgence / DM</small>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ===================== NAV BAR EN BAS ===================== -->
+  <nav id="navbar" class="hidden">
+    <button class="nav-btn active" data-page="accueil">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Accueil</span>
+    </button>
+    <button class="nav-btn" data-page="avis">
+      <span class="nav-icon">⭐</span>
+      <span class="nav-label">Avis</span>
+    </button>
+    <button class="nav-btn" data-page="info">
+      <span class="nav-icon">ℹ️</span>
+      <span class="nav-label">Info</span>
+    </button>
+    <button class="nav-btn" data-page="contact">
+      <span class="nav-icon">✉️</span>
+      <span class="nav-label">Contact</span>
+    </button>
+  </nav>
+
+  <!-- Audio joué au tout premier clic -->
+  <audio id="bg-audio" src="assets/music.mp3" loop preload="auto"></audio>
+
+  <script src="app.js"></script>
+</body>
+</html>
