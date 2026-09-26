@@ -15,6 +15,10 @@ const STORAGE_KEY = "mini-app-vitine-avis";
 const PRODUCTS_KEY = "mini-app-vitine-produits";
 const PRODUCTS_API_URL = "/api/products";
 const CATEGORY_OPTIONS = ["hash", "weed", "dur", "autres"];
+const MAX_IMAGE_SIZE = 300 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 300 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska", "video/avi", "video/x-msvideo", "video/m4v"];
 
 const DEFAULT_PRODUITS = [
   { id: 1, nom: "Maillot Domicile", prix: 39.90, qte: 12, cat: "hash", icon: "👕", image: "", mediaType: "image" },
@@ -51,6 +55,57 @@ function formatPrice(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return `${value} €`;
   return `${numeric.toFixed(2).replace(".", ",")} €`;
+}
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 Mo";
+  const units = ["o", "Ko", "Mo", "Go"];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / (1024 ** index);
+  return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+function detectMediaType(file) {
+  if (!file) return null;
+  const name = (file.name || "").toLowerCase();
+  const extension = name.includes(".") ? name.split(".").pop() : "";
+
+  if (file.type?.startsWith("video") || ["mp4", "webm", "mov", "m4v", "avi", "mkv"].includes(extension)) {
+    return "video";
+  }
+
+  if (file.type?.startsWith("image") || ["jpg", "jpeg", "png", "webp", "gif", "bmp"].includes(extension)) {
+    return "image";
+  }
+
+  return null;
+}
+
+function validateMediaFile(file) {
+  if (!file) {
+    return { valid: false, error: "Aucun fichier sélectionné." };
+  }
+
+  const type = detectMediaType(file);
+  if (!type) {
+    return { valid: false, error: "Format non supporté. Utilise une image .jpg, .png, .webp, .gif, .bmp ou une vidéo .mp4, .webm, .mov, .avi." };
+  }
+
+  const allowedTypes = type === "video" ? ALLOWED_VIDEO_TYPES : ALLOWED_IMAGE_TYPES;
+  const isAllowedMime = !file.type || allowedTypes.includes(file.type) || file.type.startsWith(type);
+  if (!isAllowedMime) {
+    return { valid: false, error: `Type MIME non pris en charge pour ${type}. Choisis un fichier standard.` };
+  }
+
+  const maxSize = type === "video" ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+  if (file.size > maxSize) {
+    return {
+      valid: false,
+      error: `${type === "video" ? "Vidéo" : "Image"} trop lourde (${formatBytes(file.size)}). Taille max autorisée : ${formatBytes(maxSize)}.`
+    };
+  }
+
+  return { valid: true, type };
 }
 
 function getProductPriceTiers(product) {
@@ -222,7 +277,7 @@ function saveAvis(list) {
 function getMediaMarkup(product) {
   if (product.image) {
     if (product.mediaType === "video") {
-      return `<video class="media-preview-video" muted playsinline autoplay loop preload="auto" src="${product.image}"></video>`;
+      return `<video class="media-preview-video" muted playsinline autoplay loop preload="auto" src="${product.image}" webkit-playsinline="true"></video>`;
     }
     return `<img src="${product.image}" alt="${product.nom}" />`;
   }
@@ -317,7 +372,7 @@ function setMediaPreview(src, type = "image") {
   }
 
   if (type === "video") {
-    preview.innerHTML = `<video class="media-thumb" controls playsinline muted autoplay loop preload="auto" src="${src}"></video>`;
+    preview.innerHTML = `<video class="media-thumb" controls playsinline muted autoplay loop preload="auto" src="${src}" webkit-playsinline="true"></video>`;
   } else {
     preview.innerHTML = `<img class="media-thumb" src="${src}" alt="Aperçu" />`;
   }
@@ -554,12 +609,24 @@ function handleAdminListClick(event) {
 
 function readFileToDataUrl(file) {
   if (!file) return;
+
+  const validation = validateMediaFile(file);
+  if (!validation.valid) {
+    const input = document.getElementById("product-media");
+    if (input) input.value = "";
+    showToast(validation.error);
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = (event) => {
     const result = event.target.result;
     selectedMediaData = result;
-    selectedMediaType = file.type.startsWith("video") ? "video" : "image";
+    selectedMediaType = validation.type;
     setMediaPreview(result, selectedMediaType);
+  };
+  reader.onerror = () => {
+    showToast("Le fichier n’a pas pu être lu. Essaie un autre format ou une version plus légère.");
   };
   reader.readAsDataURL(file);
 }
